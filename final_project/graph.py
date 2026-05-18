@@ -1,0 +1,35 @@
+from langgraph.graph import StateGraph, START, END
+from final_project.state import State
+from final_project.agents.supervisor import supervisor_node
+from final_project.agents.general import general_agent
+from final_project.agents.billing import make_billing_agent
+from final_project.agents.technical import make_technical_agent
+
+
+def route_to_agent(state: State) -> str:
+    return state["next_agent"]
+
+
+def build_graph(tools: list):
+    graph = StateGraph(State)
+
+    graph.add_node("supervisor", supervisor_node)
+    graph.add_node("billing_agent", make_billing_agent(tools))
+    graph.add_node("technical_agent", make_technical_agent(tools))
+    graph.add_node("general_agent", general_agent)
+
+    graph.add_edge(START, "supervisor")
+    graph.add_conditional_edges(
+        "supervisor",
+        route_to_agent,
+        {
+            "billing_agent": "billing_agent",
+            "technical_agent": "technical_agent",
+            "general_agent": "general_agent",
+        }
+    )
+    graph.add_edge("billing_agent", END)
+    graph.add_edge("technical_agent", END)
+    graph.add_edge("general_agent", END)
+
+    return graph

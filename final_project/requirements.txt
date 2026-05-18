@@ -1,0 +1,15 @@
+langgraph
+langchain
+langchain-openai
+langchain-core
+langchain-mcp-adapters
+fastapi
+uvicorn
+pydantic
+python-dotenv
+aiosqlite
+tavily-python
+mcp
+asyncpg
+psycopg[binary]
+langgraph-checkpoint-postgres

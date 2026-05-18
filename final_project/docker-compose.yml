@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: tanish
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: langgraph
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tanish -d langgraph"]
+      interval: 5s
+      retries: 5
+
+  mcp-server:
+    build:
+      context: ..
+      dockerfile: final_project/mcp_server/Dockerfile
+    env_file: ../.env
+    ports:
+      - "8080:8080"
+
+  fastapi:
+    build:
+      context: ..
+      dockerfile: final_project/Dockerfile
+    env_file: ../.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mcp-server:
+        condition: service_started
+
+volumes:
+  postgres_data:

@@ -1,0 +1,14 @@
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y libpq-dev && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY final_project/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY final_project/ ./final_project/
+
+EXPOSE 8000
+
+CMD ["uvicorn", "final_project.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
