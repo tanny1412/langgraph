@@ -573,6 +573,36 @@ Built properly in Session 10.
 **Answer:** Three levels: (1) Unit evals — test each component in isolation: supervisor routing, tool selection, individual agent answer quality. (2) Integration evals — test full flow end to end: user message → correct agent → correct answer. (3) Production evals — real traffic, thumbs up/down from users, run evals on real conversations not just synthetic test cases. Three evaluator types: exact match (cheapest, for routing — just string compare), LLM as judge (for answer quality — ask an LLM to score 1-5), human review (most accurate, sample 10% of traffic). The process: write 20-30 test cases per agent before shipping → establish baseline → run same evals before every change → compare to baseline → monitor production in LangSmith → add new test cases when real users hit edge cases. Also evaluate MCP tool selection: did the agent call the right tool, did it NOT call a tool when it shouldn't have.
 **Came up on:** 2026-05-16
 
+### [Final Project] — Deployed MCP server to EC2, called from local FastAPI
+**Q:** How do you deploy the MCP server to a real cloud machine and call it from a different machine?
+**Status:** answered
+**Answer:** Launch EC2 (t2.micro, Amazon Linux), install Docker + docker-compose, clone repo from GitHub, create .env on server, run `docker-compose up mcp-server --detach`. Open port 8080 in the security group. Update FastAPI to point at the EC2 public IP instead of `http://mcp-server:8080/mcp`. FastMCP DNS rebinding protection requires the EC2 IP to be in `allowed_hosts`. Architecture: local FastAPI → EC2 MCP server → Tavily. MCP server tools live on a different physical machine, FastAPI calls them over HTTP. This is the real production MCP pattern. `restart: always` in docker-compose keeps the container alive through reboots.
+**Came up on:** 2026-05-18
+
+### [Final Project] — Groq blocks certain IPs, switched to OpenAI gpt-4o-mini
+**Q:** What to do when Groq returns 403 Access Denied?
+**Status:** answered
+**Answer:** Groq blocks certain ISP/network IPs with "Access denied. Please check your network settings." — not a key issue. Fix: switch to OpenAI. All 4 agents (supervisor, billing, technical, general) use `ChatOpenAI(model="gpt-4o-mini", api_key=OPENAI_API_KEY)`. Remove `base_url` — OpenAI doesn't need it. MCP server is unaffected since it only uses Tavily, not Groq.
+**Came up on:** 2026-05-18
+
+### [Final Project] — Never paste API keys in chat or public places
+**Q:** What happens if you paste an API key publicly?
+**Status:** answered
+**Answer:** OpenAI and GitHub have automated secret scanners — they detect exposed keys within minutes and auto-revoke them. Always rotate a key immediately after accidental exposure. Store keys only in .env files that are in .gitignore. Never commit .env to git — GitHub push protection will block the push and force you to rewrite history with git filter-branch.
+**Came up on:** 2026-05-18
+
+### [Final Project] — Host header is the destination, not the source
+**Q:** Why is the Host header the EC2 IP and not the local FastAPI IP?
+**Status:** answered
+**Answer:** The Host header is always the destination — where the request is going, not where it came from. When FastAPI on your Mac calls `http://52.23.195.78:8080/mcp`, the HTTP request includes `Host: 52.23.195.78:8080`. The MCP server reads that header and checks it against allowed_hosts. It doesn't care who sent the request — it cares where the request was addressed to. So allowed_hosts must contain the MCP server's own hostname/IP as seen by the caller.
+**Came up on:** 2026-05-18
+
+### [Final Project] — postgres hostname only works inside docker-compose network
+**Q:** Why did we change the Postgres connection string from "postgres" to "localhost"?
+**Status:** answered
+**Answer:** "postgres" as a hostname only resolves inside Docker's internal network — Docker creates DNS entries for each service name. When FastAPI runs inside docker-compose it can reach Postgres via "postgres". When FastAPI runs directly on your Mac with uvicorn, there's no Docker network — "postgres" is an unknown hostname. But Postgres still has port 5432 mapped to your Mac, so "localhost:5432" works. Rule: inside docker-compose → use service name. Outside docker-compose → use localhost.
+**Came up on:** 2026-05-18
+
 ---
 
 ## Open Questions (Unanswered)

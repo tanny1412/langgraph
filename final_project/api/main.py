@@ -13,12 +13,12 @@ from final_project.graph import build_graph
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
-    async with streamable_http_client("http://mcp-server:8080/mcp") as (read, write, _):
+    async with streamable_http_client("http://52.23.195.78:8080/mcp") as (read, write, _):
         async with ClientSession(read, write) as session:
             await session.initialize()
             tools = await load_mcp_tools(session)
 
-            async with AsyncPostgresSaver.from_conn_string("postgresql://tanish:password@postgres:5432/langgraph") as checkpointer:
+            async with AsyncPostgresSaver.from_conn_string("postgresql://tanish:password@localhost:5432/langgraph") as checkpointer:
                 await checkpointer.setup()
                 graph = build_graph(tools)
                 app.state.graph = graph.compile(checkpointer=checkpointer)

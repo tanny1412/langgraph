@@ -7,9 +7,8 @@ from final_project.state import State
 load_dotenv()
 
 llm = ChatOpenAI(
-    api_key=os.environ.get("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1",
-    model="llama-3.1-8b-instant"
+    api_key=os.environ.get("OPENAI_API_KEY"),
+    model="gpt-4o-mini"
 )
 
 SYSTEM_PROMPT = SystemMessage(content="""
