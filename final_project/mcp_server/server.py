@@ -25,6 +25,6 @@ if __name__ == "__main__":
     mcp.settings.port = 8080
     mcp.settings.transport_security = TransportSecuritySettings(
         enable_dns_rebinding_protection=True,
-        allowed_hosts=["mcp-server:8080", "localhost:8080"],
+        allowed_hosts=["mcp-server:8080", "localhost:8080", "52.23.195.78:8080"],
     )
     mcp.run(transport="streamable-http")
