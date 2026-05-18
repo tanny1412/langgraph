@@ -219,34 +219,72 @@ Each session folder is self-contained. You can always go back.
 
 ---
 
-## Final Project — Phase 3 (After Deployment)
+## Final Project — Phase 3 (Remaining Work)
 
-### Session: Agent Evaluation
-Build a proper evaluation pipeline for the customer support system.
+### 1. Human-in-the-Loop on Billing
+Pause the billing agent before it responds and wait for human approval. Real use case: a refund over $500 shouldn't go out automatically.
 
 **What we'll build:**
-- 25-case dataset for the supervisor (input message → expected next_agent)
+- `interrupt_after=["billing_agent"]` in graph compile
+- `/approve/{thread_id}` endpoint in FastAPI that calls `invoke(None, config)` to resume
+- Test: send a refund request, see it pause, approve it, see the response go out
+
+---
+
+### 2. Per-Agent MCP Servers
+Billing agent gets its own MCP server with billing tools. Technical agent gets its own with technical tools. Different teams own different tool servers.
+
+**What we'll build:**
+- Split the single MCP server into two: `billing-tools-server` and `technical-tools-server`
+- Each exposes different tools
+- Graph wires each agent to its own MCP connection at startup
+
+---
+
+### 3. Auto-Retry from Checkpoint
+If an agent fails mid-workflow, roll back to the last good checkpoint and retry without starting from zero.
+
+**What we'll build:**
+- Wrapper around `graph_app.invoke()` that catches exceptions
+- On failure: `get_state_history()` → find last good checkpoint → `invoke(None, retry_config)`
+- Test: force a failure, watch it retry from the checkpoint
+
+---
+
+### 4. Evaluation Pipeline
+Build a proper eval pipeline so you know if your agents are actually doing the right thing.
+
+**What we'll build:**
+- 25-case dataset for the supervisor (input → expected next_agent)
 - Exact match evaluator for routing accuracy
 - LLM-as-judge evaluator for specialist agent answer quality
 - Tool selection eval (did agent call the right tool, or no tool?)
-- Run everything with LangSmith evaluate() and get a real accuracy score
-- Change the supervisor prompt, rerun evals, see if score improves
+- Run with LangSmith evaluate(), get a real accuracy score
+- Change a prompt, rerun, see if score improves
 
-**Why it matters:** Evaluation is the difference between hoping your agent works and knowing it does. Routing accuracy, answer quality, tool selection — each agent needs its own dataset and its own metric. Baseline → change → rerun → ship or revert. This is the cycle that separates teams that improve their agents from teams that just hope.
-
-**Eval levels to cover:**
-1. Unit evals — supervisor routing, tool selection, individual agent answer quality
+**Eval levels:**
+1. Unit evals — supervisor routing, tool selection, individual agent quality
 2. Integration evals — full flow end to end
 3. Production evals — real traffic, thumbs up/down from users in LangSmith
 
 ---
 
-## Future Work — Advanced Patterns (Post Session 12)
+### 5. Agentic RAG
+Add a retrieval agent that searches over a vector database before answering. Real use case: billing agent searches internal policy documents before giving a refund answer.
 
-These are production-grade concepts that came up during learning but are beyond the 12-session scope. Build these after the core plan is complete.
+**What we'll build:**
+- Ingest documents into a vector store (FAISS or Pinecone)
+- RAG tool that does semantic search over the vector store
+- Expose it via MCP so agents can call it as a tool
+- Test: ask about a policy → agent retrieves the right document → answers from it
 
-### Auto-Retry from Checkpoint
-When an agent fails mid-workflow, automatically roll back to the last good checkpoint and retry — without restarting from zero.
+**Why it matters:** Vector databases are on every AI JD. RAG is how companies give LLMs access to internal knowledge without fine-tuning. Agentic RAG = the agent decides when to search, what to search for, and how to use the results.
+
+---
+
+## Future Work — Advanced Patterns
+
+### Auto-Retry from Checkpoint (Code Pattern)
 
 Key APIs:
 - `graph_app.get_state_history(config)` — returns all checkpoints for a thread, newest first
@@ -270,8 +308,6 @@ def invoke_with_retry(graph_app, input, config):
 ```
 
 Why it matters: long-running workflows (10+ steps) shouldn't restart from zero on failure. This is the production-grade resilience pattern.
-
-Prerequisite: Session 7 (persistence) + Session 11 (LangSmith to detect which step failed)
 
 ---
 
