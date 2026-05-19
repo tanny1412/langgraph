@@ -3,6 +3,8 @@ CLAUDE.md
 DEVLOGS.md
 LEARNING_PLAN.md
 *.pdf
+generate_pdf.py
+generate_final_project_pdf.py
 __pycache__/
 *.pyc
 .venv/
