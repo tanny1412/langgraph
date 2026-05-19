@@ -44,15 +44,36 @@ async def chat(request: ChatRequest, http_request: Request):
     config = {"configurable": {"thread_id": request.thread_id}}
 
     async def event_stream():
-        async for event in graph_app.astream(
-            {"messages": [HumanMessage(content=request.message)]},
-            config=config,
-            stream_mode="updates"
-        ):
-            for _, updates in event.items():
-                for msg in updates.get("messages", []):
-                    if msg.content:
-                        yield f"data: {msg.content}\n\n"
+        try:
+            async for event in graph_app.astream(
+                {"messages": [HumanMessage(content=request.message)]},
+                config=config,
+                stream_mode="updates"
+            ):
+                for _, updates in event.items():
+                    for msg in updates.get("messages", []):
+                        if msg.content:
+                            yield f"data: {msg.content}\n\n"
+        except Exception:
+            history = [s async for s in graph_app.aget_state_history(config)]
+            if len(history) > 0:
+                last_good = history[0]
+                retry_config = {
+                    "configurable": {
+                        "thread_id": request.thread_id,
+                        "checkpoint_id": last_good.config["configurable"]["checkpoint_id"]
+                    }
+                }
+                try:
+                    result = await graph_app.ainvoke(None, retry_config)
+                    messages = result["messages"] if isinstance(result, dict) else result[0]["messages"]
+                    last_msg = messages[-1]
+                    if last_msg.content:
+                        yield f"data: {last_msg.content}\n\n"
+                except Exception:
+                    yield "data: Something went wrong. Please try again.\n\n"
+            else:
+                yield "data: Something went wrong. Please try again.\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
