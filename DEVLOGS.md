@@ -603,6 +603,30 @@ Built properly in Session 10.
 **Answer:** "postgres" as a hostname only resolves inside Docker's internal network — Docker creates DNS entries for each service name. When FastAPI runs inside docker-compose it can reach Postgres via "postgres". When FastAPI runs directly on your Mac with uvicorn, there's no Docker network — "postgres" is an unknown hostname. But Postgres still has port 5432 mapped to your Mac, so "localhost:5432" works. Rule: inside docker-compose → use service name. Outside docker-compose → use localhost.
 **Came up on:** 2026-05-18
 
+### [Phase 3] — Human-in-the-loop full mental model
+**Q:** How does human-in-the-loop actually work in production vs a script?
+**Status:** answered
+**Answer:** interrupt_after stops AFTER the agent runs (not before) — agent produces draft, graph pauses, human reviews. In a script you use input() to simulate approval. In production: (1) first invoke() runs agent, hits interrupt, FastAPI returns paused state to frontend. (2) Frontend shows "pending approval." (3) Human clicks Approve in a dashboard. (4) Click hits /approve/{thread_id} endpoint in FastAPI. (5) Endpoint calls invoke(None, config) — resumes graph. (6) Response goes to user. Graph waits in Postgres between pause and resume — could be seconds or hours. invoke(None, config) = resume with no new input. invoke({"messages": [...]}, config) = new message same thread, next conversation turn.
+**Came up on:** 2026-05-18
+
+### [Phase 3] — Workers, app.state, and why global variables fail in production
+**Q:** Why does app.state work with multiple workers but global variables don't?
+**Status:** answered
+**Answer:** A worker is one running Python process. In production you run many: `uvicorn main:app --workers 4` = 4 separate processes, each with isolated memory. A global variable set in worker 1 doesn't exist in worker 2. app.state is also per-worker — BUT it works because the actual state (conversations, checkpoints) lives in Postgres, not the worker. Each worker builds an identical compiled graph in its own lifespan. They're identical so it doesn't matter which worker handles a request. 1000 users hitting 4 workers: each request gets the same graph structure from app.state, each gets their own conversation from Postgres via thread_id. One database, many identical workers. That's how it scales.
+**Came up on:** 2026-05-18
+
+### [Phase 3] — Human-in-the-loop built and working
+**Q:** How does the /approve endpoint know the graph is paused and which thread to resume?
+**Status:** answered
+**Answer:** interrupt_after=["billing_agent"] in graph.compile() pauses the graph after billing agent runs. The paused state is saved to Postgres under the thread_id. /approve/{thread_id} loads app.state.graph, builds config with that thread_id, calls ainvoke(None, config) — None means no new input, just resume. LangGraph reads the checkpoint, finds where execution stopped, continues from there. The graph can wait in Postgres for seconds or days — doesn't matter. To enforce order (approve only after billing pauses), check state.next after /chat — if graph is still waiting, set status="pending_approval" in your own DB. /approve checks that status before resuming.
+**Came up on:** 2026-05-19
+
+### [Phase 3] — Who approves depends on the use case
+**Q:** Who calls /approve — manager or user?
+**Status:** answered
+**Answer:** Whoever owns the decision. Refund approval = manager (user would always approve their own refund). Subscription cancellation confirmation = user ("are you sure?"). AI-drafted email review = user ("send this?"). The pattern is identical — whoever needs to approve calls /approve. The graph doesn't care who calls it, just that the endpoint is hit. In production this is wired to an internal dashboard, Slack bot, or confirmation UI depending on the use case.
+**Came up on:** 2026-05-19
+
 ---
 
 ## Open Questions (Unanswered)
