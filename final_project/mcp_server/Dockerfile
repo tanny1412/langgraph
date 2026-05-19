@@ -8,7 +8,3 @@ COPY final_project/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY final_project/ ./final_project/
-
-EXPOSE 8080
-
-CMD ["python3", "final_project/mcp_server/server.py"]

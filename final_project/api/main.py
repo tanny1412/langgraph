@@ -13,16 +13,21 @@ from final_project.graph import build_graph
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
-    async with streamable_http_client("http://mcp-server:8080/mcp") as (read, write, _):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            tools = await load_mcp_tools(session)
+    async with streamable_http_client("http://billing-mcp-server:8081/mcp") as (b_read, b_write, _):
+        async with ClientSession(b_read, b_write) as billing_session:
+            await billing_session.initialize()
+            billing_tools = await load_mcp_tools(billing_session)
 
-            async with AsyncPostgresSaver.from_conn_string("postgresql://tanish:password@postgres:5432/langgraph") as checkpointer:
-                await checkpointer.setup()
-                graph = build_graph(tools)
-                app.state.graph = graph.compile(checkpointer=checkpointer, interrupt_after=["billing_agent"])
-                yield
+            async with streamable_http_client("http://technical-mcp-server:8082/mcp") as (t_read, t_write, _):
+                async with ClientSession(t_read, t_write) as technical_session:
+                    await technical_session.initialize()
+                    technical_tools = await load_mcp_tools(technical_session)
+
+                    async with AsyncPostgresSaver.from_conn_string("postgresql://tanish:password@postgres:5432/langgraph") as checkpointer:
+                        await checkpointer.setup()
+                        graph = build_graph(billing_tools, technical_tools)
+                        app.state.graph = graph.compile(checkpointer=checkpointer, interrupt_after=["billing_agent"])
+                        yield
 
 
 app = FastAPI(lifespan=lifespan)

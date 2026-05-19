@@ -627,6 +627,24 @@ Built properly in Session 10.
 **Answer:** Whoever owns the decision. Refund approval = manager (user would always approve their own refund). Subscription cancellation confirmation = user ("are you sure?"). AI-drafted email review = user ("send this?"). The pattern is identical — whoever needs to approve calls /approve. The graph doesn't care who calls it, just that the endpoint is hit. In production this is wired to an internal dashboard, Slack bot, or confirmation UI depending on the use case.
 **Came up on:** 2026-05-19
 
+### [Phase 3] — Per-agent MCP servers: one Dockerfile, different command per service
+**Q:** Do you need a separate Dockerfile for each MCP server?
+**Status:** answered
+**Answer:** No. One Dockerfile, no CMD line. docker-compose provides `command:` per service — that overrides whatever CMD the Dockerfile would have had. billing-mcp-server runs billing_server.py (port 8081), technical-mcp-server runs technical_server.py (port 8082), same image. Avoids duplicate Dockerfiles. Rule: Dockerfile = what's installed and copied. docker-compose command = what actually runs.
+**Came up on:** 2026-05-19
+
+### [Phase 3] — Per-agent MCP servers: lifespan opens two connections
+**Q:** How does main.py handle two MCP servers instead of one?
+**Status:** answered
+**Answer:** Two nested `async with streamable_http_client(...)` blocks in lifespan. First opens billing MCP connection → gets billing_tools. Second opens technical MCP connection → gets technical_tools. Both stay open for the server lifetime. build_graph(billing_tools, technical_tools) receives them separately. billing_agent only gets billing_tools, technical_agent only gets technical_tools. Supervisor and general agents get no tools — they don't need them. On startup each MCP server logs "Processing request of type ListToolsRequest" — that's FastAPI discovering what tools each server exposes.
+**Came up on:** 2026-05-19
+
+### [Phase 3] — allowed_hosts must include Docker service name with port
+**Q:** Why does allowed_hosts=["*"] not work but adding the service name does?
+**Status:** answered
+**Answer:** FastMCP's DNS rebinding protection does not treat "*" as a wildcard glob — it's a literal string match. The Host header sent by FastAPI is "billing-mcp-server:8081" (the Docker service name + port). That exact string must be in allowed_hosts. Fix: `allowed_hosts=["*", "billing-mcp-server:8081"]` — the literal service name and port. Same pattern for technical: `allowed_hosts=["*", "technical-mcp-server:8082"]`. Each time you add a new Docker service calling an MCP server, add its service-name:port to that server's allowed_hosts.
+**Came up on:** 2026-05-19
+
 ---
 
 ## Open Questions (Unanswered)

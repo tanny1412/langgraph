@@ -10,12 +10,12 @@ def route_to_agent(state: State) -> str:
     return state["next_agent"]
 
 
-def build_graph(tools: list):
+def build_graph(billing_tools: list, technical_tools: list):
     graph = StateGraph(State)
 
     graph.add_node("supervisor", supervisor_node)
-    graph.add_node("billing_agent", make_billing_agent(tools))
-    graph.add_node("technical_agent", make_technical_agent(tools))
+    graph.add_node("billing_agent", make_billing_agent(billing_tools))
+    graph.add_node("technical_agent", make_technical_agent(technical_tools))
     graph.add_node("general_agent", general_agent)
 
     graph.add_edge(START, "supervisor")
