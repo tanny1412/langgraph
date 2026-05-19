@@ -1,1 +1,8 @@
 .env
+DEVLOGS.md
+LEARNING_PLAN.md
+*.pdf
+__pycache__/
+*.pyc
+.venv/
+venv/
