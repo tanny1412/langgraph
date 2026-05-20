@@ -9,6 +9,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY final_project/ ./final_project/
 
+ENV PYTHONPATH=/app
+
 EXPOSE 8000
 
 CMD ["uvicorn", "final_project.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -8,3 +8,5 @@ COPY final_project/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY final_project/ ./final_project/
+
+ENV PYTHONPATH=/app

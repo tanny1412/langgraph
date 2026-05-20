@@ -13,3 +13,5 @@ mcp
 asyncpg
 psycopg[binary]
 langgraph-checkpoint-postgres
+langchain-community
+chromadb

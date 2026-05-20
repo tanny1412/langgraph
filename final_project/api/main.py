@@ -45,12 +45,15 @@ async def chat(request: ChatRequest, http_request: Request):
 
     async def event_stream():
         try:
+            agent_nodes = {"billing_agent", "technical_agent", "general_agent"}
             async for event in graph_app.astream(
                 {"messages": [HumanMessage(content=request.message)]},
                 config=config,
                 stream_mode="updates"
             ):
-                for _, updates in event.items():
+                for node_name, updates in event.items():
+                    if node_name not in agent_nodes:
+                        continue
                     for msg in updates.get("messages", []):
                         if msg.content:
                             yield f"data: {msg.content}\n\n"
