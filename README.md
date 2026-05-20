@@ -111,6 +111,8 @@ python -m final_project.evals.supervisor_eval
 
 Creates a dataset in LangSmith and runs routing accuracy eval. Baseline: 100% (20/20).
 
+![LangSmith Eval Results](final_project/langsmith_eval_100pct.png)
+
 ## Human-in-the-Loop
 
 Billing agent pauses after running. Resume with:
