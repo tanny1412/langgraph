@@ -113,6 +113,16 @@ Creates a dataset in LangSmith and runs routing accuracy eval. Baseline: 100% (2
 
 ![LangSmith Eval Results](final_project/langsmith_eval_100pct.png)
 
+## Guardrails
+
+Input guardrail blocks harmful or off-topic messages before they reach any agent.
+
+**Blocked request:**
+![Input Guardrail Blocked](final_project/input_guradrail_blocked.png)
+
+**Allowed request:**
+![Input Guardrail Allowed](final_project/input_guradrail_allowed.png)
+
 ## Human-in-the-Loop
 
 Billing agent pauses after running. Resume with:
