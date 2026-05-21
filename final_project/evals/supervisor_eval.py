@@ -78,3 +78,7 @@ if __name__ == "__main__":
     scores = [r["evaluation_results"]["results"][0].score for r in results]
     accuracy = sum(scores) / len(scores)
     print(f"\nRouting accuracy: {accuracy:.0%} ({sum(scores)}/{len(scores)} correct)")
+
+    if accuracy < 1.0:
+        print("FAILED: routing accuracy dropped below 100% baseline")
+        raise SystemExit(1)

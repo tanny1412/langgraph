@@ -1,0 +1,32 @@
+name: Routing Eval
+
+on:
+  push:
+    paths:
+      - "final_project/agents/**"
+  pull_request:
+    paths:
+      - "final_project/agents/**"
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r final_project/requirements.txt
+
+      - name: Run routing eval
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
+          LANGCHAIN_TRACING_V2: "true"
+          LANGCHAIN_ENDPOINT: "https://api.smith.langchain.com"
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m final_project.evals.supervisor_eval
