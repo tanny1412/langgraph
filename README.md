@@ -135,12 +135,17 @@ Input guardrail blocks harmful or off-topic messages before they reach any agent
 **Allowed request:**
 ![Input Guardrail Allowed](final_project/input_guradrail_allowed.png)
 
+## CI/CD Eval Pipeline
+
+GitHub Actions runs `supervisor_eval.py` automatically on every push or PR that touches `final_project/agents/**`. Blocks merges if routing accuracy drops below 100%.
+
+![GitHub Actions Eval](final_project/github-actions.png)
+
 ## Future Improvements
 
-- **CI/CD eval pipeline** — GitHub Actions runs `supervisor_eval.py` on every push to `final_project/agents/**`. Blocks merges if routing accuracy drops below baseline.
+- **Eval for technical agent** — LLM-as-judge eval for technical agent response quality
 - **General agent RAG** — product FAQ knowledge base for the general agent
 - **Simple frontend** — HTML page calling `/chat` with streaming display
-- **Eval for technical agent** — LLM-as-judge eval for technical agent response quality
 
 ## Human-in-the-Loop
 
