@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI):
                     async with AsyncPostgresSaver.from_conn_string("postgresql://tanish:password@postgres:5432/langgraph") as checkpointer:
                         await checkpointer.setup()
                         graph = build_graph(billing_tools, technical_tools)
-                        app.state.graph = graph.compile(checkpointer=checkpointer, interrupt_after=["billing_agent"])
+                        app.state.graph = graph.compile(checkpointer=checkpointer, interrupt_after=["output_guardrail"])
                         yield
 
 
@@ -45,7 +45,7 @@ async def chat(request: ChatRequest, http_request: Request):
 
     async def event_stream():
         try:
-            agent_nodes = {"input_guardrail", "billing_agent", "technical_agent", "general_agent"}
+            agent_nodes = {"input_guardrail", "output_guardrail", "technical_agent", "general_agent"}
             async for event in graph_app.astream(
                 {"messages": [HumanMessage(content=request.message)]},
                 config=config,
