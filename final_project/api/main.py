@@ -45,7 +45,7 @@ async def chat(request: ChatRequest, http_request: Request):
 
     async def event_stream():
         try:
-            agent_nodes = {"billing_agent", "technical_agent", "general_agent"}
+            agent_nodes = {"input_guardrail", "billing_agent", "technical_agent", "general_agent"}
             async for event in graph_app.astream(
                 {"messages": [HumanMessage(content=request.message)]},
                 config=config,
