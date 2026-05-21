@@ -113,6 +113,12 @@ Creates a dataset in LangSmith and runs routing accuracy eval. Baseline: 100% (2
 
 ![LangSmith Eval Results](final_project/langsmith_eval_100pct.png)
 
+## LangSmith Full Trace
+
+Every node visible with execution time and token count — full observability of the agent pipeline.
+
+![LangSmith Full Trace](final_project/full_trace.png)
+
 ## Guardrails
 
 Input guardrail blocks harmful or off-topic messages before they reach any agent.
