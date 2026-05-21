@@ -104,14 +104,19 @@ curl -X POST http://localhost:8000/chat \
 
 ## Running Evals
 
+**Supervisor routing accuracy:**
 ```bash
-cd /path/to/LangGraph-basics
 python -m final_project.evals.supervisor_eval
 ```
-
 Creates a dataset in LangSmith and runs routing accuracy eval. Baseline: 100% (20/20).
 
 ![LangSmith Eval Results](final_project/langsmith_eval_100pct.png)
+
+**Billing agent quality (LLM-as-judge):**
+```bash
+python -m final_project.evals.billing_eval
+```
+Runs 5 policy-specific test cases against the billing agent with RAG wired in. LLM judge scores each response 0/0.5/1.0 based on whether it satisfies exact policy criteria (refund windows, dispute deadlines, payment methods). Baseline: 80–100%.
 
 ## LangSmith Full Trace
 
@@ -134,7 +139,7 @@ Input guardrail blocks harmful or off-topic messages before they reach any agent
 - **CI/CD eval pipeline** — GitHub Actions runs `supervisor_eval.py` on every push to `final_project/agents/**`. Blocks merges if routing accuracy drops below baseline.
 - **General agent RAG** — product FAQ knowledge base for the general agent
 - **Simple frontend** — HTML page calling `/chat` with streaming display
-- **Eval for all agents** — LLM-as-judge evals for billing and technical agent response quality
+- **Eval for technical agent** — LLM-as-judge eval for technical agent response quality
 
 ## Human-in-the-Loop
 
