@@ -116,8 +116,7 @@ Creates a dataset in LangSmith and runs routing accuracy eval. Baseline: 100% (2
 ```bash
 python -m final_project.evals.billing_eval
 ```
-Runs 5 policy-specific test cases against the billing agent with RAG wired in. LLM judge scores each response 0/0.5/1.0 based on whether it satisfies exact policy criteria (refund windows, dispute deadlines, payment methods). Baseline: 80–100%.
-
+Runs 5 policy-specific test cases against the billing agent with RAG wired in. LLM judge scores each response 0/0.5/1.0 based on whether it satisfies exact policy criteria (refund windows, dispute deadlines, payment methods).
 ![LLM Judge Trace](final_project/llm-as-judge.png)
 
 ## LangSmith Full Trace
