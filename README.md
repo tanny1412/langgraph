@@ -118,6 +118,8 @@ python -m final_project.evals.billing_eval
 ```
 Runs 5 policy-specific test cases against the billing agent with RAG wired in. LLM judge scores each response 0/0.5/1.0 based on whether it satisfies exact policy criteria (refund windows, dispute deadlines, payment methods). Baseline: 80–100%.
 
+![LLM Judge Trace](final_project/llm-as-judge.png)
+
 ## LangSmith Full Trace
 
 Every node visible with execution time and token count — full observability of the agent pipeline.
