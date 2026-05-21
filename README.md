@@ -129,6 +129,13 @@ Input guardrail blocks harmful or off-topic messages before they reach any agent
 **Allowed request:**
 ![Input Guardrail Allowed](final_project/input_guradrail_allowed.png)
 
+## Future Improvements
+
+- **CI/CD eval pipeline** — GitHub Actions runs `supervisor_eval.py` on every push to `final_project/agents/**`. Blocks merges if routing accuracy drops below baseline.
+- **General agent RAG** — product FAQ knowledge base for the general agent
+- **Simple frontend** — HTML page calling `/chat` with streaming display
+- **Eval for all agents** — LLM-as-judge evals for billing and technical agent response quality
+
 ## Human-in-the-Loop
 
 Billing agent pauses after running. Resume with:
